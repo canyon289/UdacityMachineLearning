@@ -14,6 +14,7 @@ data = featureFormat(data_dict, features)
 
 
 ### your code below
-
-
+import pandas as pd
+df = pd.DataFrame(data, columns = features)
+df.plot(kind = 'scatter', x = "salary", y = 'bonus')
 

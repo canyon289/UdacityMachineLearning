@@ -1,5 +1,7 @@
 '''
 Pandas tester for sklearn
+
+First iteration didn't use a pipeline
 '''
 import pandas as pd
 import pickle
@@ -8,10 +10,8 @@ sys.path.append(r'../tools')
 import pandas_df_split
 import IPython
 import ipdb
-from sklearn.metrics import accuracy_score, confusion_matrix, recall_score, precision_score
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.pipeline import Pipeline
 
+# ipdb.set_trace()
 #Load data
 data = pickle.load(open(r'data/final_project_dataset.pkl', 'rb'))
 
@@ -78,40 +78,27 @@ class feature_select:
 
         return X.loc[:,self.column_mask]
 
-# Now I need to build a pipeline and see how that works
-print("Testing pipeline methods to see how it goes")
-# Reset feature selection and model
+# Features Selection and preprocess
 preprocessor = feature_select(features_list, k_features = 2)
+preprocessor.fit(X_train, y_train)
+df_sub = preprocessor.transform(X_train)
+# ipdb.set_trace()
+
+# Pick model and fit model
+# Gonna try random forest
+
+from sklearn.ensemble import RandomForestClassifier
+
+# Fit a classifier
 clf = RandomForestClassifier(n_jobs = 4, random_state = 42)
+clf.fit(df_sub.values, y_train.values)
 
-preprocessor = feature_select(features_list, k_features = 2)
-rf_classifier = Pipeline([('feature_select',preprocessor), ('rf', clf)])
+#Predict values
+pred = clf.predict(preprocessor.transform(X_test))
 
-rf_classifier.fit(X_train, y_train)
-pred_pipeline = rf_classifier.predict(X_test)
+from sklearn.metrics import accuracy_score, confusion_matrix, recall_score, precision_score
+acc = accuracy_score(y_test, pred)
 
-acc = accuracy_score(y_test, pred_pipeline)
-print("Recall:{0}".format(recall_score(y_test, pred_pipeline)))
-print("Precision:{0}".format(precision_score(y_test, pred_pipeline)))
 print("The accuracy is {0}".format(acc))
-'''
-Pipelines aren't so bad
 
-So what I need to do to make a model
-Get data
-Do some exploration
-Split the data into test and train pairs
-Set up a preprocessor with Fit and Transform methods
-Setup a pipeline with tests
-Run the pipeline with transform and predict
-
-#Things left to do
-Clean up main file
-Train another type of model
-Run a Grid CV Search
-Figure out what works best
-
-Open Questions
-Can grid search only fit best parameters on fit or also on predict?
-'''
-# IPython.embed()
+confusion = confusion_matrix(y_test, pred, labels = [True, False])

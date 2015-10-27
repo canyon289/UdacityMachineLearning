@@ -8,9 +8,12 @@ sys.path.append(r'../tools')
 import pandas_df_split
 import IPython
 import ipdb
-from sklearn.metrics import accuracy_score, confusion_matrix, recall_score, precision_score
+from sklearn.metrics import accuracy_score, confusion_matrix, \
+                            recall_score, precision_score, f1_score, make_scorer
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.pipeline import Pipeline
+from sklearn.grid_search import GridSearchCV
 
 #Load data
 data = pickle.load(open(r'data/final_project_dataset.pkl', 'rb'))
@@ -74,26 +77,67 @@ class feature_select:
         self.user_bool = X.columns.isin(features_list)
 
         self.column_mask = self.user_bool | self.k_bool
-        print(X.columns[self.column_mask])
+        # print(X.columns[self.column_mask])
 
         return X.loc[:,self.column_mask]
+
+    def get_params(self, deep=True):
+        '''
+        Need a get_params for GridSearchCV function
+        '''
+        return {"features_list":self.features_list, "k_features":self.k_features}
+
+    def set_params(self, **parameters):
+
+        for parameter, value in parameters.items():
+            self.__setattr__(parameter, value)
+        return self
+
+def score_metrics(predictions):
+    '''
+    Takes the list of predictions and outputs the various scores
+    '''
+    acc = accuracy_score(y_test, predictions)
+    print("Recall:{0}".format(recall_score(y_test, predictions)))
+    print("Precision:{0}".format(precision_score(y_test, predictions)))
+    print("The accuracy is {0}".format(acc))
+    print("Confusion Matrix")
+
+    print(confusion_matrix(y_test, predictions, labels = [True, False]))
+    return
 
 # Now I need to build a pipeline and see how that works
 print("Testing pipeline methods to see how it goes")
 # Reset feature selection and model
 preprocessor = feature_select(features_list, k_features = 2)
-clf = RandomForestClassifier(n_jobs = 4, random_state = 42)
+rf_clf = RandomForestClassifier(n_jobs = 4, random_state = 42)
+dt_clf = DecisionTreeClassifier(random_state = 42)
 
+#Create pipelines
 preprocessor = feature_select(features_list, k_features = 2)
-rf_classifier = Pipeline([('feature_select',preprocessor), ('rf', clf)])
+rf_classifier = Pipeline([('feature_select', preprocessor), ('rf', rf_clf)])
+dt_classifier = Pipeline([('feature_select', preprocessor), ('dt', dt_clf)])
 
-rf_classifier.fit(X_train, y_train)
-pred_pipeline = rf_classifier.predict(X_test)
+'''
+for pipe in [rf_classifier, dt_classifier]:
 
-acc = accuracy_score(y_test, pred_pipeline)
-print("Recall:{0}".format(recall_score(y_test, pred_pipeline)))
-print("Precision:{0}".format(precision_score(y_test, pred_pipeline)))
-print("The accuracy is {0}".format(acc))
+    pipe.fit(X_train, y_train)
+    predictions = pipe.predict(X_test)
+
+    score_metrics(predictions)
+'''
+# Make Scorer
+f1 = make_scorer(f1_score)
+#Random Forest looks most promising
+rf_params = {
+    'feature_select__k_features':[1,2,3],
+    'rf__n_estimators':[5,10,20,30]
+    }
+dt_params = {
+    'feature_select__k_features':[1,2,3]
+    }
+grid = GridSearchCV(dt_classifier, param_grid = dt_params, scoring = f1, verbose = 10)
+grid.fit(X_train, y_train)
 '''
 Pipelines aren't so bad
 
@@ -104,14 +148,17 @@ Split the data into test and train pairs
 Set up a preprocessor with Fit and Transform methods
 Setup a pipeline with tests
 Run the pipeline with transform and predict
-
-#Things left to do
 Clean up main file
 Train another type of model
+
+#Things left to do
 Run a Grid CV Search
 Figure out what works best
 
 Open Questions
 Can grid search only fit best parameters on fit or also on predict?
 '''
+print(grid.best_params_)
+pred = grid.predict(X_test)
+score_metrics(pred)
 # IPython.embed()

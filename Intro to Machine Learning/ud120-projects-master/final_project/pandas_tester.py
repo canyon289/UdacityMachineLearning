@@ -2,6 +2,7 @@
 Pandas tester for sklearn
 '''
 import pandas as pd
+import numpy as np
 import pickle
 import sys
 sys.path.append(r'../tools')
@@ -9,11 +10,14 @@ import pandas_df_split
 import IPython
 import ipdb
 from sklearn.metrics import accuracy_score, confusion_matrix, \
-                            recall_score, precision_score, f1_score, make_scorer
+                            recall_score, precision_score, f1_score,\
+                            make_scorer, classification_report
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.grid_search import GridSearchCV
+
+np.set_printoptions(suppress=True)
 
 #Load data
 data = pickle.load(open(r'data/final_project_dataset.pkl', 'rb'))
@@ -77,7 +81,7 @@ class feature_select:
         self.user_bool = X.columns.isin(features_list)
 
         self.column_mask = self.user_bool | self.k_bool
-        # print(X.columns[self.column_mask])
+        self.cols = X.columns[self.column_mask]
 
         return X.loc[:,self.column_mask]
 
@@ -101,9 +105,9 @@ def score_metrics(predictions):
     print("Recall:{0}".format(recall_score(y_test, predictions)))
     print("Precision:{0}".format(precision_score(y_test, predictions)))
     print("The accuracy is {0}".format(acc))
-    print("Confusion Matrix")
+    print("Classification Report Matrix")
 
-    print(confusion_matrix(y_test, predictions, labels = [True, False]))
+    print(classification_report(y_test, predictions, labels = [True, False]))
     return
 
 # Now I need to build a pipeline and see how that works
@@ -133,9 +137,14 @@ rf_params = {
     'feature_select__k_features':[1,2,3],
     'rf__n_estimators':[5,10,20,30]
     }
+
 dt_params = {
-    'feature_select__k_features':[1,2,3]
+    'feature_select__k_features':[1,2,3,4,5],
+    'dt__min_samples_split':[2],
+    'dt__criterion':['gini', 'entropy'],
+    'dt__max_depth':[3], 
     }
+
 grid = GridSearchCV(dt_classifier, param_grid = dt_params, scoring = f1, verbose = 10)
 grid.fit(X_train, y_train)
 '''
@@ -158,6 +167,14 @@ Figure out what works best
 Open Questions
 Can grid search only fit best parameters on fit or also on predict?
 '''
+feature_cols = grid.best_estimator_.named_steps["feature_select"].cols
+feature_importance = grid.best_estimator_.named_steps["dt"].feature_importances_
+print(feature_cols)
+print("Select K Best feature Importance")
+print(grid.best_estimator_.named_steps["feature_select"].kbest.pvalues_)
+print("Decision Tree Feature Importance")
+for col,imp in zip(feature_cols, feature_importance):
+    print("{0}:{1}".format(col,imp))
 print(grid.best_params_)
 pred = grid.predict(X_test)
 score_metrics(pred)

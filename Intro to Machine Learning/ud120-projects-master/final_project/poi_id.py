@@ -15,6 +15,8 @@ from tester import dump_classifier_and_data
 features_list = ['poi', 'bonus', 'deferred_income', 'director_fees', 'exercised_stock_options', \
        'other', 'restricted_stock', 'salary', 'total_payments', \
        'total_stock_value', 'email_bool']
+       
+features_list = ['poi', 'bonus', 'exercised_stock_options', 'other', 'email_bool']
 
 ### Load the dictionary containing the dataset
 data_dict = pickle.load(open(r"data/final_project_dataset.pkl", "rb") )

@@ -42,8 +42,8 @@ df["email_bool"] = df["email_address"].replace({0:None}).notnull().astype("int")
 X_train, y_train, X_test, y_test = pandas_df_split.df_test_train_split(df)
 # IPython.embed()
 #Human feature selection first
-features_list = ["deferred_income", "director_fees", \
-        "restricted_stock", "other", "exercised_stock_options", "email_bool"]
+features_list = [\
+        "other", "exercised_stock_options"]
 
 class feature_select:
     '''
@@ -80,7 +80,7 @@ class feature_select:
         #Get user selected columns
         self.user_bool = X.columns.isin(features_list)
 
-        self.column_mask = self.user_bool | self.k_bool
+        self.column_mask = self.k_bool | self.user_bool 
         self.cols = X.columns[self.column_mask]
 
         return X.loc[:,self.column_mask]
@@ -140,12 +140,12 @@ rf_params = {
 
 dt_params = {
     'feature_select__k_features':[1,2,3,4,5],
-    'dt__min_samples_split':[2],
-    'dt__criterion':['gini', 'entropy'],
-    'dt__max_depth':[3], 
+    'dt__min_samples_split':[2,3,4],
+    'dt__criterion':['gini'],
+    'dt__max_depth':[2,3,4]
     }
 
-grid = GridSearchCV(dt_classifier, param_grid = dt_params, scoring = f1, verbose = 10)
+grid = GridSearchCV(dt_classifier, param_grid = dt_params, scoring = 'f1', verbose = 10)
 grid.fit(X_train, y_train)
 '''
 Pipelines aren't so bad

@@ -53,8 +53,7 @@ df = df.apply(lambda x: x.fillna(x.mean()),axis=0)
 X_train, y_train, X_test, y_test = pandas_df_split.df_test_train_split(df)
 # IPython.embed()
 #Human feature selection first
-features_list = [\
-        "other", "exercised_stock_options"]
+features_list = ["other", "exercised_stock_options"]
 
 class feature_select:
     '''

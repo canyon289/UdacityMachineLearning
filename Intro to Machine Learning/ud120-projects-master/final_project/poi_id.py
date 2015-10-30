@@ -16,7 +16,7 @@ features_list = ['poi', 'bonus', 'deferred_income', 'director_fees', 'exercised_
        'other', 'restricted_stock', 'salary', 'total_payments', \
        'total_stock_value', 'email_bool']
        
-features_list = ['poi', 'bonus', 'exercised_stock_options', 'other', 'email_bool']
+features_list = ['poi', 'exercised_stock_options', 'other', 'total_stock_value']
 
 ### Load the dictionary containing the dataset
 data_dict = pickle.load(open(r"data/final_project_dataset.pkl", "rb") )
@@ -48,7 +48,16 @@ labels, features = targetFeatureSplit(data)
 
 # Provided to give you a starting point. Try a variety of classifiers.
 from sklearn.tree import DecisionTreeClassifier
-clf = DecisionTreeClassifier(min_samples_split = 2, max_depth = 3)
+#clf = DecisionTreeClassifier(min_samples_split = 2, max_depth = 3)
+
+from sklearn.pipeline import Pipeline
+from sklearn.svm import SVC
+from sklearn.preprocessing import StandardScaler
+
+sv_clf = SVC(kernel = 'linear', C = 1)
+scale = StandardScaler()
+
+clf = Pipeline([('scaler', scale),('clf', sv_clf)])
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 
 ### using our testing script. Check the tester.py script in the final project

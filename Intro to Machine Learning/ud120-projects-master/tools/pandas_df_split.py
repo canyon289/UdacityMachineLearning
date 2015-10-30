@@ -21,8 +21,7 @@ def df_test_train_split(df, target_col = "poi"):
     df.drop(target_col, axis = 1, inplace = True)
 
     # ipdb.set_trace()
-    # Drop all email column
-    df.drop("email_address", axis = 1, inplace = True)
+
 
     # Make all four splits
     X_train =  df.loc[train_indices,:]

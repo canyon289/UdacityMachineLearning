@@ -16,10 +16,13 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.grid_search import GridSearchCV
-
+from sklearn.preprocessing import Imputer
+from sklearn.naive_bayes import GaussianNB
+from sklearn.svm import SVC
+from sklearn.preprocessing import StandardScaler
 np.set_printoptions(suppress=True)
 
-#Load data
+#Load data:
 data = pickle.load(open(r'data/final_project_dataset.pkl', 'rb'))
 
 #Create dataframe from loaded data
@@ -29,7 +32,8 @@ df = pd.DataFrame(data).transpose()
 
 #Replace all missing values with zero
 #Planning on using classification the arbitrary numerical value shouldn't skew anything
-df.replace({'NaN':0}, inplace = True)
+df.replace({'NaN':np.NaN}, inplace = True)
+
 
 #Remove erroneous total row
 df.drop("TOTAL", inplace=True)
@@ -38,7 +42,14 @@ df.drop("TOTAL", inplace=True)
 #All POI have email addresses, convert to 0 1 flag indicating if email exists
 df["email_bool"] = df["email_address"].replace({0:None}).notnull().astype("int")
 
-#Get test train split
+# Drop all email column
+df.drop("email_address", axis = 1, inplace = True)
+
+# IPython.embed()
+df = df.apply(lambda x: x.fillna(x.mean()),axis=0)
+
+
+# Get test train split
 X_train, y_train, X_test, y_test = pandas_df_split.df_test_train_split(df)
 # IPython.embed()
 #Human feature selection first
@@ -80,7 +91,7 @@ class feature_select:
         #Get user selected columns
         self.user_bool = X.columns.isin(features_list)
 
-        self.column_mask = self.k_bool | self.user_bool 
+        self.column_mask = self.k_bool | self.user_bool
         self.cols = X.columns[self.column_mask]
 
         return X.loc[:,self.column_mask]
@@ -117,11 +128,18 @@ preprocessor = feature_select(features_list, k_features = 2)
 rf_clf = RandomForestClassifier(n_jobs = 4, random_state = 42)
 dt_clf = DecisionTreeClassifier(random_state = 42)
 
+#Be sure to check importer to get rid of replace if using Gaussian
+gb_clf = GaussianNB()
+sv_clf = SVC()
+scale = StandardScaler()
+
 #Create pipelines
 preprocessor = feature_select(features_list, k_features = 2)
-rf_classifier = Pipeline([('feature_select', preprocessor), ('rf', rf_clf)])
-dt_classifier = Pipeline([('feature_select', preprocessor), ('dt', dt_clf)])
-
+imputer = Imputer()
+rf_classifier = Pipeline([('feature_select', preprocessor), ('clf', rf_clf)])
+dt_classifier = Pipeline([('feature_select', preprocessor), ('clf', dt_clf)])
+gb_classifier = Pipeline([('feature_select', preprocessor),('clf', gb_clf)])
+sv_classifier = Pipeline([('feature_select', preprocessor),('scaler', scale),('clf', sv_clf)])
 '''
 for pipe in [rf_classifier, dt_classifier]:
 
@@ -140,12 +158,20 @@ rf_params = {
 
 dt_params = {
     'feature_select__k_features':[1,2,3,4,5],
-    'dt__min_samples_split':[2,3,4],
-    'dt__criterion':['gini'],
-    'dt__max_depth':[2,3,4]
+    'clf__min_samples_split':[2,3,4],
+    'clf__criterion':['gini'],
+    'clf__max_depth':[2,3,4]
     }
+gb_params = {
+    'feature_select__k_features':[1,2,3]
+}
 
-grid = GridSearchCV(dt_classifier, param_grid = dt_params, scoring = 'f1', verbose = 10)
+sv_params = {'feature_select__k_features':[2,5,7,],
+            'clf__C':[.1,1,50,100],
+            'clf__kernel':['linear']
+             }
+
+grid = GridSearchCV(sv_classifier, param_grid = sv_params, scoring = 'f1', verbose = 10)
 grid.fit(X_train, y_train)
 '''
 Pipelines aren't so bad
@@ -168,13 +194,13 @@ Open Questions
 Can grid search only fit best parameters on fit or also on predict?
 '''
 feature_cols = grid.best_estimator_.named_steps["feature_select"].cols
-feature_importance = grid.best_estimator_.named_steps["dt"].feature_importances_
+# feature_importance = grid.best_estimator_.named_steps["gb"].feature_importances_
 print(feature_cols)
 print("Select K Best feature Importance")
 print(grid.best_estimator_.named_steps["feature_select"].kbest.pvalues_)
-print("Decision Tree Feature Importance")
-for col,imp in zip(feature_cols, feature_importance):
-    print("{0}:{1}".format(col,imp))
+# print("Decision Tree Feature Importance")
+#for col,imp in zip(feature_cols, feature_importance):
+#    print("{0}:{1}".format(col,imp))
 print(grid.best_params_)
 pred = grid.predict(X_test)
 score_metrics(pred)

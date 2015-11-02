@@ -12,26 +12,30 @@ from tester import dump_classifier_and_data
 ### Task 1: Select what features you'll use.
 ### features_list is a list of strings, each of which is a feature name.
 ### The first feature must be "poi".
-features_list = ['poi', 'bonus', 'deferred_income', 'director_fees', 'exercised_stock_options', \
-       'other', 'restricted_stock', 'salary', 'total_payments', \
-       'total_stock_value', 'email_bool']
+features_list = ['poi', 'bonus', 'deferral_payments', 'deferred_income', 'director_fees',
+       'exercised_stock_options', 'expenses', 'from_messages',
+       'from_poi_to_this_person', 'from_this_person_to_poi', 'loan_advances',
+       'long_term_incentive', 'other', 'restricted_stock',
+       'restricted_stock_deferred', 'salary', 'shared_receipt_with_poi',
+       'to_messages', 'total_payments', 'total_stock_value']
        
-features_list = ['poi', 'exercised_stock_options', 'other', 'total_stock_value']
+#features_list = ['poi', 'exercised_stock_options', 'other', 'total_stock_value']
 
 ### Load the dictionary containing the dataset
-data_dict = pickle.load(open(r"data/final_project_dataset.pkl", "rb") )
+data_dict = pickle.load(open(r"data/final_project_dataset_py3.p", "rb") )
 
 ### Task 2: Remove outliers
 ### Task 3: Create new feature(s)
 ### Store to my_dataset for easy export below.
 
 # Engineer email_bool variable
+'''
 for person in data_dict:
     if data_dict[person]["email_address"] != 'NaN':
          data_dict[person]["email_bool"] = 1
     else:
         data_dict[person]["email_bool"] = 0
-        
+'''
 #Delete Total
 del data_dict['TOTAL']
 my_dataset = data_dict
@@ -54,7 +58,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.svm import SVC
 from sklearn.preprocessing import StandardScaler
 
-sv_clf = SVC(kernel = 'linear', C = 1)
+sv_clf = SVC(kernel = 'linear', C = 2)
 scale = StandardScaler()
 
 clf = Pipeline([('scaler', scale),('clf', sv_clf)])

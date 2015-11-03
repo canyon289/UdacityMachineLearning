@@ -13,37 +13,27 @@ from tester import dump_classifier_and_data
 ### features_list is a list of strings, each of which is a feature name.
 ### The first feature must be "poi".
 
-features_list = ['poi', 'bonus', 'deferral_payments', 'deferred_income', 'director_fees',
+features_list = ['poi', 'deferral_payments', 'deferred_income', 'director_fees',
        'exercised_stock_options', 'expenses', 'from_messages',
        'from_poi_to_this_person', 'from_this_person_to_poi', 'loan_advances',
-       'long_term_incentive', 'other', 'restricted_stock',
+       'long_term_incentive', 'other', 'poi', 'restricted_stock',
        'restricted_stock_deferred', 'salary', 'shared_receipt_with_poi',
        'to_messages', 'total_payments', 'total_stock_value']
+
 
 ### Load the dictionary containing the dataset
 data_dict = pickle.load(open(r"data/final_project_dataset.pkl", "rb") )
 
 ### Task 2: Remove outliers
-#Delete Total
-del data_dict['TOTAL']
-
 ### Task 3: Create new feature(s)
 ### Store to my_dataset for easy export below.
 
-# Engineer email_bool variable
-'''
-for person in data_dict:
-    if data_dict[person]["email_address"] != 'NaN':
-         data_dict[person]["email_bool"] = 1
-    else:
-        data_dict[person]["email_bool"] = 0
-'''
-
+#Delete Total
+del data_dict['TOTAL']
 my_dataset = data_dict
 
 ### Extract features and labels from dataset for local testing
-data = featureFormat(my_dataset, features_list, remove_NaN=True, remove_all_zeroes=True, \
-                        remove_any_zeroes=False, sort_keys = False)
+data = featureFormat(my_dataset, features_list, remove_NaN=True, remove_all_zeroes=True, remove_any_zeroes=False, sort_keys = True)
 labels, features = targetFeatureSplit(data)
 
 ### Task 4: Try a varity of classifiers
@@ -53,16 +43,12 @@ labels, features = targetFeatureSplit(data)
 ### http://scikit-learn.org/stable/modules/pipeline.html
 
 # Provided to give you a starting point. Try a variety of classifiers.
-from sklearn.tree import DecisionTreeClassifier
-#clf = DecisionTreeClassifier(min_samples_split = 2, max_depth = 3)
-
 from sklearn.pipeline import Pipeline
 from sklearn.svm import SVC
 from sklearn.preprocessing import StandardScaler
 
-sv_clf = SVC(kernel = 'linear', C = 2)
 scale = StandardScaler()
-
+sv_clf = SVC(kernel = 'linear', C = 2)
 clf = Pipeline([('scaler', scale),('clf', sv_clf)])
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 

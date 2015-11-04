@@ -13,30 +13,26 @@ from tester import dump_classifier_and_data
 ### features_list is a list of strings, each of which is a feature name.
 ### The first feature must be "poi".
 
-features_list = ['poi', 'bonus', 'deferral_payments', 'deferred_income', 'director_fees',
-       'exercised_stock_options', 'expenses', 'from_messages',
-       'from_poi_to_this_person', 'from_this_person_to_poi', 'loan_advances',
-       'long_term_incentive', 'other', 'restricted_stock',
-       'restricted_stock_deferred', 'salary', 'shared_receipt_with_poi',
-       'to_messages', 'total_payments', 'total_stock_value', "email_bool"]
+features_list = ['poi', "other", "expenses", "bonus", "salary"]
 
 ### Load the dictionary containing the dataset
-data_dict = pickle.load(open(r"data/final_project_dataset_py3.p", "rb") )
+data_dict = pickle.load(open(r"data/final_project_dataset.pkl", "rb") )
 
 ### Task 2: Remove outliers
-#Delete Total
 del data_dict['TOTAL']
+del data_dict["THE TRAVEL AGENCY IN THE PARK"]
 
 ### Task 3: Create new feature(s)
 ### Store to my_dataset for easy export below.
 
 # Engineer email_bool variable
-
+bool_list = ["other", "expenses", "bonus"]
 for person in data_dict:
-    if data_dict[person]["email_address"] != 'NaN':
-         data_dict[person]["email_bool"] = 1
-    else:
-        data_dict[person]["email_bool"] = 0
+    for feature in bool_list:
+        if data_dict[person][feature] != 'NaN':
+             data_dict[person][feature] = 1
+        else:
+            data_dict[person][feature] = 0
 
 my_dataset = data_dict
 
@@ -56,17 +52,19 @@ labels, features = targetFeatureSplit(data)
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.feature_selection import SelectKBest
+from sklearn.decomposition import PCA
 
 from sklearn.svm import SVC, LinearSVC
 from sklearn.cluster import KMeans
 
 preprocessor = SelectKBest(k=7)
 scale = StandardScaler()
+pca = PCA(n_components = 2)
 
-sv_clf = SVC(kernel = 'linear', C = 2)
+sv_clf = LinearSVC(C=4, class_weight = {1:3.2, 0:1})
 km_clf = KMeans(n_clusters=2)
 
-clf = Pipeline([('feature_select', preprocessor),('scaler', scale),('clf', km_clf)])
+clf = Pipeline([('pca', pca),('scaler', scale),('clf', sv_clf)])
 
 
 

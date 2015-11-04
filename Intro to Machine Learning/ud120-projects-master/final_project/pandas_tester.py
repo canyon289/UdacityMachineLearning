@@ -29,7 +29,7 @@ from sklearn.decomposition import PCA
 np.set_printoptions(suppress=True)
 
 #Load data:
-data = pickle.load(open(r'data/final_project_dataset_py3.p', 'rb'))
+data = pickle.load(open(r'data/final_project_dataset.pkl', 'rb'))
 
 #Create dataframe from loaded data
 #Features are columns
@@ -45,7 +45,9 @@ df.drop(["TOTAL", "THE TRAVEL AGENCY IN THE PARK"], inplace=True)
 
 #Engineereed features
 #All POI have email addresses, convert to 0 1 flag indicating if email exists
-df["email_bool"] = df["email_address"].replace({0:None}).notnull().astype("int")
+bool_list = ["other", "expenses", "bonus"]
+for col in bool_list:
+    df[col] = df[col].notnull().astype("int")
 
 # Drop all email column
 df.drop("email_address", axis = 1, inplace = True)
@@ -54,8 +56,12 @@ df.drop("email_address", axis = 1, inplace = True)
 #df = df.apply(lambda x: x.fillna(x.mean()),axis=0)
 df.replace({np.NaN:0}, inplace = True)
 
+#Features List
+features = ["poi", "salary"]
+
 # Get test train split
-X_train, y_train, X_test, y_test = pandas_df_split.df_test_train_split(df)
+X_train, y_train, X_test, y_test = pandas_df_split.df_test_train_split(df[bool_list + features])
+#IPython.embed()
 
 
 def score_metrics(predictions):
@@ -77,28 +83,28 @@ preprocessor = SelectKBest()
 scale = StandardScaler()
 
 #Be sure to check importer to get rid of replace if using Gaussian
-sv_clf = LinearSVC(class_weight = 'auto')
+sv_clf = LinearSVC(class_weight = {1:6, 0:1})
 
 #Try unsupervised classification
 km_clf = KMeans()
 
-sv_classifier = Pipeline([('feature_select', preprocessor),('scaler', scale),('clf', sv_clf)])
-km_classifier = Pipeline([('feature_select', preprocessor),('scaler', scale),('clf', km_clf)])
+sv_classifier = Pipeline([('scaler', scale),('clf', sv_clf)])
+km_classifier = Pipeline([('scaler', scale),('clf', km_clf)])
 
-sv_params = {'feature_select__percentile':[10,20,30,40],
+sv_params = {#'feature_select__percentile':[10,20,30,40],
             'clf__C':[.1,.5,1,50,100],
              }
              
-km_params = {'feature_select__k':[5,6,7,9,11],
+km_params = {#'feature_select__k':[5,6,7,9,11],
             #'feature_select__percentile':[10,20,30,40],
             'clf__n_clusters':[2],
             'clf__random_state':[42]
              }
 
-grid = GridSearchCV(km_classifier, param_grid = km_params, scoring = 'f1', cv=10)
+grid = GridSearchCV(sv_classifier, param_grid = sv_params, scoring = 'f1', cv = 10)
 grid.fit(X_train, y_train)
 
 print(grid.best_params_)
 pred = grid.predict(X_test)
 score_metrics(pred)
-# IPython.embed()
+IPython.embed()

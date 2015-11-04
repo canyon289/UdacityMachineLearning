@@ -18,10 +18,10 @@ features_list = ['poi', 'bonus', 'deferral_payments', 'deferred_income', 'direct
        'from_poi_to_this_person', 'from_this_person_to_poi', 'loan_advances',
        'long_term_incentive', 'other', 'restricted_stock',
        'restricted_stock_deferred', 'salary', 'shared_receipt_with_poi',
-       'to_messages', 'total_payments', 'total_stock_value']
+       'to_messages', 'total_payments', 'total_stock_value', "email_bool"]
 
 ### Load the dictionary containing the dataset
-data_dict = pickle.load(open(r"data/final_project_dataset.pkl", "rb") )
+data_dict = pickle.load(open(r"data/final_project_dataset_py3.p", "rb") )
 
 ### Task 2: Remove outliers
 #Delete Total
@@ -31,13 +31,12 @@ del data_dict['TOTAL']
 ### Store to my_dataset for easy export below.
 
 # Engineer email_bool variable
-'''
+
 for person in data_dict:
     if data_dict[person]["email_address"] != 'NaN':
          data_dict[person]["email_bool"] = 1
     else:
         data_dict[person]["email_bool"] = 0
-'''
 
 my_dataset = data_dict
 
@@ -53,17 +52,23 @@ labels, features = targetFeatureSplit(data)
 ### http://scikit-learn.org/stable/modules/pipeline.html
 
 # Provided to give you a starting point. Try a variety of classifiers.
-from sklearn.tree import DecisionTreeClassifier
-#clf = DecisionTreeClassifier(min_samples_split = 2, max_depth = 3)
 
 from sklearn.pipeline import Pipeline
-from sklearn.svm import SVC
 from sklearn.preprocessing import StandardScaler
+from sklearn.feature_selection import SelectKBest
 
-sv_clf = SVC(kernel = 'linear', C = 2)
+from sklearn.svm import SVC, LinearSVC
+from sklearn.cluster import KMeans
+
+preprocessor = SelectKBest(k=7)
 scale = StandardScaler()
 
-clf = Pipeline([('scaler', scale),('clf', sv_clf)])
+sv_clf = SVC(kernel = 'linear', C = 2)
+km_clf = KMeans(n_clusters=2)
+
+clf = Pipeline([('feature_select', preprocessor),('scaler', scale),('clf', km_clf)])
+
+
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 
 ### using our testing script. Check the tester.py script in the final project

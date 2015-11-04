@@ -15,7 +15,7 @@ def df_test_train_split(df, target_col = "poi"):
 
     '''
     train_indices, test_indices = train_test_split(df.index.values,
-                                test_size = .3, random_state = 42)
+                                test_size = .1, random_state = 42)
     # Get target col and drop
     y = df[target_col].copy()
     df.drop(target_col, axis = 1, inplace = True)
@@ -30,4 +30,3 @@ def df_test_train_split(df, target_col = "poi"):
     y_test = y.loc[test_indices]
 
     return X_train, y_train, X_test, y_test
-

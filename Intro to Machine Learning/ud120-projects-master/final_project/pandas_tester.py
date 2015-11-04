@@ -29,7 +29,7 @@ from sklearn.decomposition import PCA
 np.set_printoptions(suppress=True)
 
 #Load data:
-data = pickle.load(open(r'data/final_project_dataset.pkl', 'rb'))
+data = pickle.load(open(r'data/final_project_dataset_py3.p', 'rb'))
 
 #Create dataframe from loaded data
 #Features are columns
@@ -54,7 +54,6 @@ df.drop("email_address", axis = 1, inplace = True)
 #df = df.apply(lambda x: x.fillna(x.mean()),axis=0)
 df.replace({np.NaN:0}, inplace = True)
 
-
 # Get test train split
 X_train, y_train, X_test, y_test = pandas_df_split.df_test_train_split(df)
 
@@ -72,58 +71,31 @@ def score_metrics(predictions):
     print(classification_report(y_test, predictions, labels = [True, False]))
     return
 
-# Now I need to build a pipeline and see how that works
-print("Testing pipeline methods to see how it goes")
 
 # Reset feature selection and model
-preprocessor = SelectPercentile()
+preprocessor = SelectKBest()
 scale = StandardScaler()
 
-rf_clf = RandomForestClassifier(n_jobs = 4, random_state = 42)
-dt_clf = DecisionTreeClassifier(random_state = 42)
-
 #Be sure to check importer to get rid of replace if using Gaussian
-gb_clf = GaussianNB()
 sv_clf = LinearSVC(class_weight = 'auto')
 
 #Try unsupervised classification
 km_clf = KMeans()
 
-#Create pipelines
-rf_classifier = Pipeline([('feature_select', preprocessor), ('clf', rf_clf)])
-dt_classifier = Pipeline([('feature_select', preprocessor), ('clf', dt_clf)])
-gb_classifier = Pipeline([('feature_select', preprocessor),('clf', gb_clf)])
 sv_classifier = Pipeline([('feature_select', preprocessor),('scaler', scale),('clf', sv_clf)])
 km_classifier = Pipeline([('feature_select', preprocessor),('scaler', scale),('clf', km_clf)])
-
-# Make Scorer
-f1 = make_scorer(f1_score)
-#Random Forest looks most promising
-rf_params = {
-    'feature_select__k':[1,2,3],
-    'rf__n_estimators':[5,10,20,30]
-    }
-
-dt_params = {
-    'feature_select__k':[1,2,3,4,5],
-    'clf__min_samples_split':[2,3,4],
-    'clf__criterion':['gini'],
-    'clf__max_depth':[2,3,4]
-    }
-gb_params = {
-    'feature_select__k':[1,2,3]
-}
 
 sv_params = {'feature_select__percentile':[10,20,30,40],
             'clf__C':[.1,.5,1,50,100],
              }
              
 km_params = {'feature_select__k':[5,6,7,9,11],
+            #'feature_select__percentile':[10,20,30,40],
             'clf__n_clusters':[2],
             'clf__random_state':[42]
              }
 
-grid = GridSearchCV(sv_classifier, param_grid = sv_params, scoring = 'f1', cv=10)
+grid = GridSearchCV(km_classifier, param_grid = km_params, scoring = 'f1', cv=10)
 grid.fit(X_train, y_train)
 
 print(grid.best_params_)

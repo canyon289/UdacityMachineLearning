@@ -51,17 +51,14 @@ labels, features = targetFeatureSplit(data)
 
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
-from sklearn.feature_selection import SelectKBest
 from sklearn.decomposition import PCA
 
 from sklearn.svm import SVC, LinearSVC
-from sklearn.cluster import KMeans
 
-preprocessor = SelectKBest(k=7)
 scale = StandardScaler()
 pca = PCA(n_components = 2)
 
-sv_clf = LinearSVC(C=4, class_weight = {1:3.2, 0:1})
+sv_clf = LinearSVC(C=4, class_weight = {1:3.25, 0:1})
 km_clf = KMeans(n_clusters=2)
 
 clf = Pipeline([('pca', pca),('scaler', scale),('clf', sv_clf)])
@@ -85,5 +82,5 @@ features_train, features_test, labels_train, labels_test = \
 ### that the version of poi_id.py that you submit can be run on its own and
 ### generates the necessary .pkl files for validating your results.
 
-#dump_classifier_and_data(clf, my_dataset, features_list)
+dump_classifier_and_data(clf, my_dataset, features_list)
 test_classifier(clf, my_dataset, features_list)

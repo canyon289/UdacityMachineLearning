@@ -24,6 +24,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.feature_selection import SelectKBest, SelectPercentile
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
+from sklearn.linear_model import LogisticRegression
 
 
 np.set_printoptions(suppress=True)
@@ -47,7 +48,8 @@ df.drop(["TOTAL", "THE TRAVEL AGENCY IN THE PARK"], inplace=True)
 #All POI have email addresses, convert to 0 1 flag indicating if email exists
 bool_list = ["other", "expenses", "bonus"]
 for col in bool_list:
-    df[col] = df[col].notnull().astype("int")
+    name = col + "_bool"
+    df[name] = df[col].notnull().astype("int")
 
 # Drop all email column
 df.drop("email_address", axis = 1, inplace = True)
@@ -57,11 +59,12 @@ df.drop("email_address", axis = 1, inplace = True)
 df.replace({np.NaN:0}, inplace = True)
 
 #Features List
-features = ["poi", "salary"]
+features = df.columns
 
 # Get test train split
-X_train, y_train, X_test, y_test = pandas_df_split.df_test_train_split(df[bool_list + features])
-#IPython.embed()
+X_train, y_train, X_test, y_test = pandas_df_split.df_test_train_split(df)
+print(features)
+IPython.embed()
 
 
 def score_metrics(predictions):
@@ -79,32 +82,40 @@ def score_metrics(predictions):
 
 
 # Reset feature selection and model
-preprocessor = SelectKBest()
+pca = PCA()
+feature_select = SelectKBest()
 scale = StandardScaler()
 
 #Be sure to check importer to get rid of replace if using Gaussian
-sv_clf = LinearSVC(class_weight = {1:6, 0:1})
+sv_clf = LinearSVC()
+km_clf = KMeans(max_iter = 200)
+lr_clf = LogisticRegression(class_weight = {1:10, 0:1})
 
-#Try unsupervised classification
-km_clf = KMeans()
 
-sv_classifier = Pipeline([('scaler', scale),('clf', sv_clf)])
-km_classifier = Pipeline([('scaler', scale),('clf', km_clf)])
+sv_classifier = Pipeline([('scaler', scale),('feature_select', feature_select), ('pca', pca), ('clf', sv_clf)])
+km_classifier = Pipeline([('scaler', scale),('feature_select', feature_select), ('pca', pca),('clf', km_clf)])
+lr_classifier = Pipeline([('scaler', scale),('feature_select', feature_select), ('pca', pca),('clf', lr_clf)])
 
-sv_params = {#'feature_select__percentile':[10,20,30,40],
-            'clf__C':[.1,.5,1,50,100],
+sv_params = {'feature_select__k':list(range(1,len(df.columns))),
+            'pca__n_components': [8,7,6,5,4,3,2],
+            'clf__C':[.1,.5,1,50],
+            'clf__class_weight' : ['auto', {1:3.25, 0:1}]
              }
              
-km_params = {#'feature_select__k':[5,6,7,9,11],
-            #'feature_select__percentile':[10,20,30,40],
-            'clf__n_clusters':[2],
-            'clf__random_state':[42]
+km_params = {'feature_select__k':list(range(1,len(df.columns))),
+            'pca__n_components': [8,7,6,5,4,3,2],
+            'clf__n_clusters':[2]
+             }
+             
+lr_params = {'feature_select__k':list(range(1,len(df.columns))),
+            'pca__n_components': [8,7,6,5,4,3,2],
              }
 
-grid = GridSearchCV(sv_classifier, param_grid = sv_params, scoring = 'f1', cv = 10)
+grid = GridSearchCV(lr_classifier, param_grid = lr_params, scoring = 'f1', cv = 10, error_score = 0)
 grid.fit(X_train, y_train)
 
 print(grid.best_params_)
 pred = grid.predict(X_test)
 score_metrics(pred)
-IPython.embed()
+
+#IPython.embed()

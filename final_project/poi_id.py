@@ -13,7 +13,22 @@ from tester import dump_classifier_and_data
 ### features_list is a list of strings, each of which is a feature name.
 ### The first feature must be "poi".
 
-features_list = ['poi', "other", "expenses", "bonus", "salary"]
+features_list = ['poi', 'bonus', 'deferral_payments', 'deferred_income', 'director_fees', \
+       'exercised_stock_options', 'expenses', 'from_messages', \
+       'from_poi_to_this_person', 'from_this_person_to_poi', 'loan_advances', \
+       'long_term_incentive', 'other', 'restricted_stock', \
+       'restricted_stock_deferred', 'salary', 'shared_receipt_with_poi', \
+       'to_messages', 'total_payments', 'total_stock_value', 'other_bool', \
+       'expenses_bool', 'bonus_bool']
+       
+'''
+features_list = ['poi', 'bonus', 'deferral_payments', 'deferred_income', 'director_fees', \
+       'exercised_stock_options', 'expenses', 'from_messages', \
+       'from_poi_to_this_person', 'from_this_person_to_poi', 'loan_advances', \
+       'long_term_incentive', 'other', 'restricted_stock', \
+       'restricted_stock_deferred', 'salary', 'shared_receipt_with_poi', \
+       'to_messages', 'total_payments', 'total_stock_value']
+'''
 
 ### Load the dictionary containing the dataset
 data_dict = pickle.load(open(r"data/final_project_dataset.pkl", "rb") )
@@ -26,13 +41,15 @@ del data_dict["THE TRAVEL AGENCY IN THE PARK"]
 ### Store to my_dataset for easy export below.
 
 # Engineer email_bool variable
+
 bool_list = ["other", "expenses", "bonus"]
 for person in data_dict:
     for feature in bool_list:
+        name = feature + "_bool"
         if data_dict[person][feature] != 'NaN':
-             data_dict[person][feature] = 1
+             data_dict[person][name] = 1
         else:
-            data_dict[person][feature] = 0
+            data_dict[person][name] = 0
 
 my_dataset = data_dict
 
@@ -50,19 +67,35 @@ labels, features = targetFeatureSplit(data)
 # Provided to give you a starting point. Try a variety of classifiers.
 
 from sklearn.pipeline import Pipeline
+from sklearn.feature_selection import SelectKBest
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 
+
+from sklearn.linear_model import LogisticRegression
+feature_select = SelectKBest(k = 11)
+scale = StandardScaler()
+pca = PCA(n_components = 2, whiten = True)
+lr_clf = LogisticRegression(class_weight = {1:3.4, 0:1})
+
+'''
+from sklearn.cluster import KMeans
+feature_select = SelectKBest(k = 2)
+scale = StandardScaler()
+pca = PCA(n_components = 2, whiten = True)
+km_clf = KMeans(n_clusters = 2)
+
+
 from sklearn.svm import SVC, LinearSVC
 
+feature_select = SelectKBest(k = 11)
 scale = StandardScaler()
-pca = PCA(n_components = 2)
+pca = PCA(n_components = 8)
+sv_clf =LinearSVC(C = 1, class_weight = {1:3.25, 0:1})
+'''
 
-sv_clf = LinearSVC(C=4, class_weight = {1:3.25, 0:1})
-km_clf = KMeans(n_clusters=2)
-
-clf = Pipeline([('pca', pca),('scaler', scale),('clf', sv_clf)])
-
+clf = Pipeline([('scaler', scale),('feature_select', feature_select), \
+            ('pca', pca), ('clf', lr_clf)])
 
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 
@@ -82,5 +115,5 @@ features_train, features_test, labels_train, labels_test = \
 ### that the version of poi_id.py that you submit can be run on its own and
 ### generates the necessary .pkl files for validating your results.
 
-dump_classifier_and_data(clf, my_dataset, features_list)
+#dump_classifier_and_data(clf, my_dataset, features_list)
 test_classifier(clf, my_dataset, features_list)

@@ -15,7 +15,7 @@ def df_test_train_split(df, target_col = "poi"):
 
     '''
     train_indices, test_indices = train_test_split(df.index.values,
-                                test_size = .3, random_state = 42)
+                                test_size = .3)
     # Get target col and drop
     y = df[target_col].copy()
     df.drop(target_col, axis = 1, inplace = True)

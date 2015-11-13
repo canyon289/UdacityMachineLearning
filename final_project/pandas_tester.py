@@ -59,13 +59,11 @@ df.drop("email_address", axis = 1, inplace = True)
 df.replace({np.NaN:0}, inplace = True)
 
 #Features List
-features = df.columns
 
 # Get test train split
 X_train, y_train, X_test, y_test = pandas_df_split.df_test_train_split(df)
+features = X_train.columns
 print(features)
-IPython.embed()
-
 
 def score_metrics(predictions):
     '''
@@ -110,12 +108,17 @@ km_params = {'feature_select__k':list(range(1,len(df.columns))),
 lr_params = {'feature_select__k':list(range(1,len(df.columns))),
             'pca__n_components': [8,7,6,5,4,3,2],
              }
-
+'''
 grid = GridSearchCV(lr_classifier, param_grid = lr_params, scoring = 'f1', cv = 10, error_score = 0)
 grid.fit(X_train, y_train)
 
 print(grid.best_params_)
 pred = grid.predict(X_test)
 score_metrics(pred)
+'''
 
-#IPython.embed()
+kbest = SelectKBest()
+kbest.fit(X_train,y_train)
+k_df = pd.DataFrame(list(zip(kbest.scores_, kbest.pvalues_)), columns = ["score", "Pvalue"], index = features)
+k_df.sort(by = "score", ascending = False).to_pickle("Kbestdf.p")
+IPython.embed()

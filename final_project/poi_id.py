@@ -13,6 +13,7 @@ from tester import dump_classifier_and_data
 ### features_list is a list of strings, each of which is a feature name.
 ### The first feature must be "poi".
 
+#With Engineered Features
 features_list = ['poi', 'bonus', 'deferral_payments', 'deferred_income', 'director_fees', \
        'exercised_stock_options', 'expenses', 'from_messages', \
        'from_poi_to_this_person', 'from_this_person_to_poi', 'loan_advances', \
@@ -21,14 +22,15 @@ features_list = ['poi', 'bonus', 'deferral_payments', 'deferred_income', 'direct
        'to_messages', 'total_payments', 'total_stock_value', 'other_bool', \
        'expenses_bool', 'bonus_bool']
        
-'''
+
+#Without Engineered features
 features_list = ['poi', 'bonus', 'deferral_payments', 'deferred_income', 'director_fees', \
        'exercised_stock_options', 'expenses', 'from_messages', \
        'from_poi_to_this_person', 'from_this_person_to_poi', 'loan_advances', \
        'long_term_incentive', 'other', 'restricted_stock', \
        'restricted_stock_deferred', 'salary', 'shared_receipt_with_poi', \
        'to_messages', 'total_payments', 'total_stock_value']
-'''
+
 
 ### Load the dictionary containing the dataset
 data_dict = pickle.load(open(r"data/final_project_dataset.pkl", "rb") )

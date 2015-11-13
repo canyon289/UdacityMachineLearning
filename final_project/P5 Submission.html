@@ -208,8 +208,8 @@ div#notebook {
 <li>Adaboost</li>
 <li>Logistic Regression</li>
 </ul>
-<p>All models were tested by splitting the dataset into test and training methods. Then a GridSearchCV method was used to fit multiple parameters combinations with the F1 score as the objective. These initial tests showed the most promise with the LinearSVC, K means and Logistic Regression models. The other models either had a 0 recall or precision, or had poorer scores for both measures.</p>
-<h3 id="Final-Model-Scores">Final Model Scores<a class="anchor-link" href="#Final-Model-Scores">&#182;</a></h3><p>The models were evaluated based on precision and recall due to the unbalanced nature of the dataset. Simply by predicting that all rows were non POIs roughly an ~85% accuracy could be obtained. However this would make the model completely ineffective of identifying POIs.</p>
+<p>All models were tested by splitting the dataset into test and training methods. Then a GridSearchCV method was used to fit multiple parameters combinations with the F1 score as the objective. These initial tests showed the most promise with the LinearSVC, K means and Logistic Regression models. The other models either had zero recall or precision, or had poorer scores for both measures.</p>
+<h3 id="Final-Model-Scores">Final Model Scores<a class="anchor-link" href="#Final-Model-Scores">&#182;</a></h3><p>The models were evaluated based on precision and recall due to the unbalanced nature of the dataset. Simply by predicting that all rows were non POIs roughly an ~85% accuracy could be obtained. However this would make the model completely ineffective at identifying POIs.</p>
 <p><strong>Due to random nature of testing actual values might be slightly different</strong></p>
 <table>
 <thead><tr>
@@ -224,7 +224,7 @@ div#notebook {
 <td>KMeans</td>
 <td style="text-align:center">.176</td>
 <td>.256</td>
-<td>.31</td>
+<td>.21</td>
 </tr>
 <tr>
 <td>LinearSVC</td>
@@ -234,8 +234,8 @@ div#notebook {
 </tr>
 <tr>
 <td>Logistic Reg</td>
-<td style="text-align:center">.31</td>
-<td>.35</td>
+<td style="text-align:center">.33</td>
+<td>.33</td>
 <td>.33</td>
 </tr>
 </tbody>
@@ -251,7 +251,31 @@ div#notebook {
 <div class="text_cell_render border-box-sizing rendered_html">
 <h1 id="Tuning">Tuning<a class="anchor-link" href="#Tuning">&#182;</a></h1><p>Turning the parameters of the model essentially means tweaking the way the model classifies data into predictions. The models were initially tuned by testing various parameters specific to each model by using the GridSearchCV method of Sklearn. The models were ranked by their F1 score, which uses both recall and precision in it's calculation. Scoring was done by using StratifiedShuffleSplits with 1000 iterations on a train set. The best estimator was scored on a holdout test set.</p>
 <p>The three chosen models were more finely tuned using further GridSearchCV iterations, as well as hand tuning on the tester script. The parameter that had the largest effect was weighting the features for the Logistic Regression and LinearSVC.</p>
-<h1 id="Feature-Selection">Feature Selection<a class="anchor-link" href="#Feature-Selection">&#182;</a></h1><p>Feature selection was done through PCA and univariate feature selection with the KBest method. The number of components, and k features were selected through GridSearch testing. Through testing the engineered features showed more value than the original feature, for instance the other_bool hold a higher score than the other col"</p>
+<h1 id="Feature-Selection">Feature Selection<a class="anchor-link" href="#Feature-Selection">&#182;</a></h1><p>Feature selection was done through PCA and univariate feature selection with the KBest method. The number of components, and k features were selected through GridSearch testing. Through testing the engineered features showed a higher score than the original feature, for instance the other_bool hold a higher score than the "other col"</p>
+<p>Ultimately however the engineered features seem to slightly hurt the model performance, and at best add no value.</p>
+<table>
+<thead><tr>
+<th>Logistics Reg</th>
+<th style="text-align:center">Precision</th>
+<th>Recall</th>
+<th>F1 Score</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>With Bool</td>
+<td style="text-align:center">.33</td>
+<td>.33</td>
+<td>.33</td>
+</tr>
+<tr>
+<td>Without Bool</td>
+<td style="text-align:center">.30</td>
+<td>.34</td>
+<td>.32</td>
+</tr>
+</tbody>
+</table>
 
 </div>
 </div>
@@ -437,6 +461,18 @@ div#notebook {
 <li><a href="http://scikit-learn.org/stable/tutorial/machine_learning_map/">http://scikit-learn.org/stable/tutorial/machine_learning_map/</a></li>
 <li><a href="http://scikit-learn.org/stable/modules/generated/sklearn.svm.LinearSVC.html">http://scikit-learn.org/stable/modules/generated/sklearn.svm.LinearSVC.html</a></li>
 </ul>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="Other-Files">Other Files<a class="anchor-link" href="#Other-Files">&#182;</a></h1><p><strong>Pandas_Tester</strong> - Generates Kbestdf.p and used for model optimization and validation<br>
+<strong>Exploratory Analysis/Enron Dataset Exploration.ipynb</strong> - Exploratory Analysis<br>
+<strong>Deprecated Files/</strong>  - Various files tested but not used for final model</p>
 
 </div>
 </div>
